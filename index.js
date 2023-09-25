@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(express.json());
 
 // Generate a unique short ID
 const shortid = require("shortid");
