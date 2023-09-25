@@ -33,13 +33,13 @@ app.get("/api/hello", function (req, res) {
 app.post("/api/shorturl", function (req, res) {
   const shortID = shortid.generate();
 
-  const { URL } = req.body;
-  if (!URL) {
+  const { url } = req.body;
+  if (!url) {
     res.json({ error: "please provide a url" });
   } else {
-    urlMap.set(shortID, URL);
+    urlMap.set(shortID, url);
 
-    res.json({ original_url: URL, short_url: shortID });
+    res.json({ original_url: url, short_url: shortID });
   }
 });
 app.get("/api/shorturl/:short_url", (req, res) => {
