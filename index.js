@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
+const dns = require("dns");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -31,20 +32,20 @@ app.get("/api/hello", function (req, res) {
 });
 
 app.post("/api/shorturl", function (req, res) {
-  const shortID = shortid.generate();
-
   const { url } = req.body;
-  if (!url) {
-    res.json({ error: "please provide a url" });
-  } else {
-    urlMap.set(shortID, url);
-
-    res.json({ original_url: url, short_url: shortID });
-  }
+  // Check if the URL is valid
+  validateURL(url)
+    .then(() => {
+      const shortID = shortid.generate();
+      urlMap.set(shortID, url);
+      res.json({ original_url: url, short_url: shortID });
+    })
+    .catch(() => {
+      res.json({ error: "invalid url" });
+    });
 });
 app.get("/api/shorturl/:short_url", (req, res) => {
   const { short_url } = req.params;
-
   // Check if the short URL exists in the mapping
   if (urlMap.has(short_url)) {
     // Redirect the user to the original URL
@@ -54,6 +55,22 @@ app.get("/api/shorturl/:short_url", (req, res) => {
     res.json({ error: "Short URL not found" });
   }
 });
+
+// Function to validate a URL using dns.lookup
+function validateURL(url) {
+  return new Promise((resolve, reject) => {
+    const urlObject = new URL(url);
+    const host = urlObject.hostname;
+
+    dns.lookup(host, (err, address) => {
+      if (err) {
+        reject(err); // Host is not valid
+      } else {
+        resolve(); // Host is valid
+      }
+    });
+  });
+}
 
 app.listen(port, function () {
   console.log(`Listening on port ${port}`);
